@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Upload Known Face</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background:#f6f8fb; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto; }
+    .form-card { max-width:520px; margin:32px auto; }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand bg-white shadow-sm">
+    <div class="container">
+      <a class="navbar-brand" href="/">FaceAttend</a>
+      <div class="ms-auto">
+        <a class="btn btn-sm btn-outline-secondary" href="/">Back to Camera</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="card form-card shadow-sm">
+    <div class="card-body">
+      <h5 class="card-title">Upload a Known Face</h5>
+      <p class="text-muted small">Upload a clear front-facing JPG/PNG named by person (the server will rename to <code>{name}.jpg</code>).</p>
+
+      <form action="/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
+        <div class="mb-3">
+          <label class="form-label">Name</label>
+          <input class="form-control" type="text" name="name" required />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Image</label>
+          <input class="form-control" type="file" name="file" accept="image/*" required />
+        </div>
+
+        <div class="d-flex gap-2">
+          <button class="btn btn-primary" type="submit">Upload</button>
+          <a class="btn btn-outline-secondary" href="/">Cancel</a>
+        </div>
+      </form>
+      <div id="uploadResult" class="mt-3"></div>
+    </div>
+  </div>
+
+  <script>
+    // optional: enhance upload UX without blocking server-side
+    document.getElementById('uploadForm').addEventListener('submit', (e) => {
+      // Let the form submit normally (server returns a small HTML response). If you prefer Ajax upload, I can provide that.
+    });
+  </script>
+</body>
+</html>
