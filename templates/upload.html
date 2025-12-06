@@ -3,17 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Upload Known Face</title>
+  <title>Upload new face</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body { background:#f6f8fb; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto; }
-    .form-card { max-width:520px; margin:32px auto; }
-  </style>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Custom Styles -->
+  <link href="{{ url_for('static', filename='upload.css') }}" rel="stylesheet">
 </head>
 <body>
   <nav class="navbar navbar-expand bg-white shadow-sm">
     <div class="container">
-      <a class="navbar-brand" href="/">FaceAttend</a>
+      <a class="navbar-brand" href="/">Face Attendance</a>
       <div class="ms-auto">
         <a class="btn btn-sm btn-outline-secondary" href="/">Back to Camera</a>
       </div>
@@ -22,23 +22,30 @@
 
   <div class="card form-card shadow-sm">
     <div class="card-body">
-      <h5 class="card-title">Upload a Known Face</h5>
-      <p class="text-muted small">Upload a clear front-facing JPG/PNG named by person (the server will rename to <code>{name}.jpg</code>).</p>
+      <h5 class="card-title">Upload a new Face</h5>
+      <p class="text-muted small">Upload your photo and name so we can set up your face-recognition attendance. Quick and easy!!</p>
 
-      <form action="/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
-        <div class="mb-3">
-          <label class="form-label">Name</label>
-          <input class="form-control" type="text" name="name" required />
+      <form action="/upload" method="POST" enctype="multipart/form-data" id="uploadForm" class="fade-in">
+        <div class="mb-4">
+          <label class="form-label">👤 Name</label>
+          <input class="form-control" type="text" name="name" placeholder="Enter full name" required />
         </div>
 
-        <div class="mb-3">
-          <label class="form-label">Image</label>
+        <div class="mb-4">
+          <label class="form-label">📷 Face Shot</label>
           <input class="form-control" type="file" name="file" accept="image/*" required />
+          <div class="form-text mt-2">
+            <small class="text-muted">Choose a clear, front-facing photo (JPG/PNG format)</small>
+          </div>
         </div>
 
         <div class="d-flex gap-2">
-          <button class="btn btn-primary" type="submit">Upload</button>
-          <a class="btn btn-outline-secondary" href="/">Cancel</a>
+          <button class="btn btn-primary" type="submit" id="submitBtn">
+            <span class="btn-icon">📤</span> Upload Face
+          </button>
+          <a class="btn btn-outline-secondary" href="/">
+            <span class="btn-icon">↩️</span> Cancel
+          </a>
         </div>
       </form>
       <div id="uploadResult" class="mt-3"></div>
@@ -46,9 +53,59 @@
   </div>
 
   <script>
-    // optional: enhance upload UX without blocking server-side
-    document.getElementById('uploadForm').addEventListener('submit', (e) => {
-      // Let the form submit normally (server returns a small HTML response). If you prefer Ajax upload, I can provide that.
+    const uploadForm = document.getElementById('uploadForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const uploadResult = document.getElementById('uploadResult');
+    
+    // File preview functionality
+    const fileInput = document.querySelector('input[type="file"]');
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        // Show file preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const preview = document.createElement('div');
+          preview.className = 'mt-3 text-center fade-in';
+          preview.innerHTML = `
+            <img src="${e.target.result}" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+            <p class="mt-2 small text-muted">Preview: ${file.name}</p>
+          `;
+          
+          // Remove existing preview
+          const existingPreview = document.querySelector('.file-preview');
+          if (existingPreview) existingPreview.remove();
+          
+          preview.classList.add('file-preview');
+          fileInput.parentNode.appendChild(preview);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    uploadForm.addEventListener('submit', (e) => {
+      // Add loading state
+      submitBtn.disabled = true;
+      const prevHTML = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading…';
+      
+      // Let form submit normally, but show loading state
+      setTimeout(() => {
+        // Reset button state after a delay (in case of redirect)
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = prevHTML;
+      }, 3000);
+    });
+
+    // Name input enhancement
+    const nameInput = document.querySelector('input[name="name"]');
+    nameInput.addEventListener('input', (e) => {
+      // Auto-capitalize first letter of each word
+      const words = e.target.value.split(' ');
+      const capitalizedWords = words.map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+      );
+      e.target.value = capitalizedWords.join(' ');
     });
   </script>
 </body>

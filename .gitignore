@@ -1,0 +1,24 @@
+# Ignore attendance data (contains personal information)
+Attendance.csv
+backups/
+
+# Ignore specific images
+Attendance/Angelica.png
+Attendance/Edhel.jpg
+
+DownloadedImages/Angelica.png
+DownloadedImages/Edhel.jpg
+
+# Ignore other sensitive data
+keys/
+*.json
+*.key
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment files
+.env
+.venv/

@@ -21,14 +21,48 @@ const DETECTION_INTERVAL = 150; // ms
 
 function setStatus(text, cls = 'text-muted small') {
   if (!statusEl) return;
-  statusEl.textContent = text;
+  const statusText = statusEl.querySelector('.status-text');
+  const statusIndicator = statusEl.querySelector('.status-indicator');
+  
+  if (statusText) {
+    statusText.textContent = text;
+  } else {
+    statusEl.textContent = text;
+  }
+  
   statusEl.className = cls;
+  
+  // Add status indicator styling
+  if (statusIndicator) {
+    statusIndicator.className = 'status-indicator';
+    if (text.includes('Ready')) {
+      statusIndicator.style.background = '#4bf542';
+      statusIndicator.classList.add('pulse');
+    } else if (text.includes('Error')) {
+      statusIndicator.style.background = '#d40f3d';
+    } else {
+      statusIndicator.style.background = '#ffc107';
+      statusIndicator.classList.add('pulse');
+    }
+  }
 }
 
 function showResult(message, success = true) {
   if (!resultEl) return;
-  const cls = success ? 'alert alert-success small' : 'alert alert-warning small';
-  resultEl.innerHTML = `<div class="${cls}" role="alert">${message}</div>`;
+  const cls = success ? 'alert alert-success small fade-in' : 'alert alert-warning small fade-in';
+  const icon = success ? '✅' : '⚠️';
+  resultEl.innerHTML = `<div class="${cls}" role="alert">
+    <strong>${icon}</strong> ${message}
+  </div>`;
+  
+  // Auto-hide after 5 seconds for success messages
+  if (success) {
+    setTimeout(() => {
+      if (resultEl.innerHTML.includes(message)) {
+        resultEl.innerHTML = '';
+      }
+    }, 5000);
+  }
 }
 
 async function start() {
@@ -107,9 +141,12 @@ function captureFrameToDataURL() {
 captureBtn && captureBtn.addEventListener('click', async (e) => {
   e && e.preventDefault();
   if (!captureBtn) return;
+  
+  // Add loading animation
   captureBtn.disabled = true;
-  const prevText = captureBtn.textContent;
-  captureBtn.textContent = 'Processing…';
+  const prevHTML = captureBtn.innerHTML;
+  captureBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing…';
+  captureBtn.classList.add('pulse');
 
   try {
     const dataURL = captureFrameToDataURL();
@@ -130,13 +167,36 @@ captureBtn && captureBtn.addEventListener('click', async (e) => {
     const message = json?.message || 'No response';
     const success = typeof message === 'string' ? message.startsWith('✅') : true;
     showResult(message, success);
+    
+    // Add success animation to button
+    if (success) {
+      captureBtn.style.background = 'var(--success-gradient)';
+      setTimeout(() => {
+        captureBtn.style.background = 'var(--primary-gradient)';
+      }, 2000);
+    }
   } catch (err) {
     console.error('Recognition error:', err);
-    showResult(`Error: ${err?.message || err}`, false);
+    showResult(`Recognition failed: ${err?.message || err}`, false);
   } finally {
     captureBtn.disabled = false;
-    captureBtn.textContent = prevText || '📸 Capture & Submit';
+    captureBtn.innerHTML = prevHTML;
+    captureBtn.classList.remove('pulse');
   }
+});
+
+// Clear button functionality
+const clearBtn = document.getElementById('clearBtn');
+clearBtn && clearBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+  if (resultEl) {
+    resultEl.innerHTML = '';
+  }
+  if (overlay) {
+    const ctx = overlay.getContext('2d');
+    ctx.clearRect(0, 0, overlay.width, overlay.height);
+  }
+  showResult('Display cleared', true);
 });
 
 // start after page load

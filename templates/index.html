@@ -7,21 +7,15 @@
 
   <!-- Bootstrap (quick professional UI) -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-  <style>
-    body { background: #f6f8fb; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
-    .app-card { max-width: 900px; margin: 28px auto; }
-    #wrapper { position: relative; width: 100%; padding-top: 56.25%; background:#000; border-radius:8px; overflow:hidden; }
-    video, canvas { position: absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; }
-    #result { min-height:44px; margin-top:12px; }
-    .controls { display:flex; gap:12px; align-items:center; }
-    .brand { font-weight:600; letter-spacing:0.2px; }
-  </style>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Custom Styles -->
+  <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
 </head>
 <body>
   <nav class="navbar navbar-expand bg-white shadow-sm">
     <div class="container">
-      <a class="navbar-brand brand" href="/">FaceAttend</a>
+      <a class="navbar-brand brand" href="/">Face Attendance</a>
       <div class="ms-auto">
         <a class="btn btn-outline-primary btn-sm" href="/admin">Upload Faces</a>
       </div>
@@ -37,12 +31,19 @@
         <canvas id="overlay"></canvas>
       </div>
 
-      <div class="d-flex justify-content-between align-items-center">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div class="controls">
-          <button id="captureBtn" type="button" class="btn btn-primary">📸 Capture & Submit</button>
-          <button id="clearBtn" type="button" class="btn btn-outline-secondary">Clear</button>
+          <button id="captureBtn" type="button" class="btn btn-primary">
+            <span class="btn-icon">📸</span> Capture & Submit
+          </button>
+          <button id="clearBtn" type="button" class="btn btn-outline-secondary">
+            <span class="btn-icon">🗑️</span> Clear
+          </button>
         </div>
-        <div id="status" class="text-muted small">Models loading…</div>
+        <div id="status" class="text-muted small">
+          <span class="status-indicator"></span>
+          <span class="status-text">Models loading…</span>
+        </div>
       </div>
 
       <div id="result" class="mt-3"></div>
