@@ -88,3 +88,8 @@ http://localhost:5000
 ## License
 
 This project is licensed under the **MIT License**.
+
+
+## Acknowledgements
+
+This project uses [face-api.js](https://github.com/justadudewhohacks/face-api.js) by **justadudewhohacks** for facial recognition. The library provides pre-trained models and functions for face detection and recognition.
