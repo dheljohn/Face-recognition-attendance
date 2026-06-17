@@ -269,7 +269,7 @@ async function start() {
       await faceapi.nets.tinyFaceDetector.loadFromUri("/static/models");
       console.log("✅ tinyFaceDetector loaded");
       await faceapi.nets.faceLandmark68Net.loadFromUri("/static/models");
-      await new Promise((r) => setTimeout(r, 50));
+      console.log("✅ faceLandmark68Net loaded");
       await faceapi.nets.faceRecognitionNet.loadFromUri("/static/models");
       console.log("✅ faceRecognitionNet loaded");
     } catch (err) {
