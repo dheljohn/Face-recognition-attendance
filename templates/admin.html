@@ -154,7 +154,10 @@
       }
 
       loadFaceModels().catch((err) => {
-        showResult(`Face recognition models failed to load: ${err.message}`, false);
+        showResult(
+          `Face recognition models failed to load: ${err.message}`,
+          false,
+        );
       });
 
       fileInput.addEventListener("change", () => {
@@ -200,7 +203,10 @@
             .withFaceDescriptor();
 
           if (!detection) {
-            showResult("No face detected. Please use a clear, front-facing photo.", false);
+            showResult(
+              "No face detected. Please use a clear, front-facing photo.",
+              false,
+            );
             return;
           }
 
@@ -320,7 +326,9 @@
         const scale = Math.min(maxSize / img.width, maxSize / img.height, 1);
         canvas.width = Math.round(img.width * scale);
         canvas.height = Math.round(img.height * scale);
-        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas
+          .getContext("2d")
+          .drawImage(img, 0, 0, canvas.width, canvas.height);
         return canvas.toDataURL("image/jpeg", 0.85).split(",")[1];
       }
     </script>
