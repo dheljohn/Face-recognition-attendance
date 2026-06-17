@@ -254,8 +254,8 @@ async function start() {
 
     // --- NEW: force CPU backend ---
     if (typeof tf !== "undefined") {
-      await tf.setBackend("cpu");
-      console.log("Backend set to:", tf.getBackend()); // should log 'cpu'
+      await tf.setBackend("wasm");
+      console.log("Backend set to:", tf.getBackend());
     } else if (faceapi.tf) {
       // fallback: some face-api builds expose tf as faceapi.tf
       await faceapi.tf.setBackend("cpu");
@@ -269,7 +269,7 @@ async function start() {
       await faceapi.nets.tinyFaceDetector.loadFromUri("/static/models");
       console.log("✅ tinyFaceDetector loaded");
       await faceapi.nets.faceLandmark68Net.loadFromUri("/static/models");
-      console.log("✅ faceLandmark68Net loaded");
+      await new Promise((r) => setTimeout(r, 50));
       await faceapi.nets.faceRecognitionNet.loadFromUri("/static/models");
       console.log("✅ faceRecognitionNet loaded");
     } catch (err) {
