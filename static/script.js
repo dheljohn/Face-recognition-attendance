@@ -265,9 +265,19 @@ async function start() {
     }
 
     setStatus("Loading models...");
-    await faceapi.nets.tinyFaceDetector.loadFromUri("/static/models");
-    await faceapi.nets.faceLandmark68Net.loadFromUri("/static/models");
-    await faceapi.nets.faceRecognitionNet.loadFromUri("/static/models");
+    try {
+      await faceapi.nets.tinyFaceDetector.loadFromUri("/static/models");
+      console.log("✅ tinyFaceDetector loaded");
+      await faceapi.nets.faceLandmark68Net.loadFromUri("/static/models");
+      console.log("✅ faceLandmark68Net loaded");
+      await faceapi.nets.faceRecognitionNet.loadFromUri("/static/models");
+      console.log("✅ faceRecognitionNet loaded");
+    } catch (err) {
+      console.error("❌ Model loading failed:", err);
+      setStatus("Model loading failed", "text-danger small");
+      showResult(`Model error: ${err.message}`, false);
+      return; // stop further execution
+    }
 
     setStatus("Loading registered faces...");
     await loadKnownFaces();
