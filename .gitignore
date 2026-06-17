@@ -1,24 +1,59 @@
-# Ignore attendance data (contains personal information)
+# --- Sensitive data ---
+.env
+keys/
+*.key
+gdriveSecret.json
+
+# --- Attendance data (personal information) ---
 Attendance.csv
 backups/
+recognizer/
+main.py
 
-# Ignore specific images
-Attendance/Angelica.png
-Attendance/Edhel.jpg
+# --- Face images (personal photos) ---
+known_faces/
+DownloadedImages/
+Attendance/
+backupCODE/
+# --- Unused face-api.js assets (loaded from CDN instead) ---
+# --- Unused face-api.js assets (loaded from CDN instead) ---
+face-api.js-0.22.2/
+face-api.js-models-master/
+static/models/age_gender_model/
+static/models/face_expression/
+static/models/face_landmark_68_tiny/
+static/models/face_recognition/
+static/models/mtcnn/
+static/models/proto/
+static/models/ssd_mobilenetv1/
+static/models/tiny_yolov2/
+static/models/tiny_yolov2_separable_conv/
+static/models/uncompressed/
+static/models/face-api.js-0.22.2/
 
-DownloadedImages/Angelica.png
-DownloadedImages/Edhel.jpg
-
-# Ignore other sensitive data
-keys/
-*.json
-*.key
-
-# Python cache
+# --- Python cache ---
 __pycache__/
+
 *.pyc
 *.pyo
+*.pyd
+.Python
 
-# Environment files
-.env
+# --- Virtual environments ---
 .venv/
+venv/
+env/
+
+# --- IDE / editor ---
+.idea/
+.vscode/
+*.iml
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Build / deploy ---
+*.egg-info/
+dist/
+build/

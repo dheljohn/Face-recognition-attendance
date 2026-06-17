@@ -1,74 +1,60 @@
-import face_recognition
+
+"""
+recognizer.py — Face recognition and attendance logic
+"""
+
 import numpy as np
-import os
-import csv
 from datetime import datetime, timedelta
 
+from db import get_today_logs, save_attendance
 
-def load_known_faces(directory):
-    encodings = []
-    names = []
-    
-    for filename in os.listdir(directory):
-        if not filename.lower().endswith(('.jpg', '.png', '.jpeg')):
-            continue
-        path = os.path.join(directory, filename)
-        image = face_recognition.load_image_file(path)
-        encoding = face_recognition.face_encodings(image)
-        if encoding:
-            encodings.append(encoding[0])
-            names.append(os.path.splitext(filename)[0])
-        else:
-            print(f"Failed to extract encoding for {path}") 
-            
-    return encodings, names
 
-def recognize_face(img, known_encodings, known_names):
-    unknown_encodings = face_recognition.face_encodings(img)
+def recognize_face(img, known_encodings: list, known_names: list) -> tuple[str, float] | tuple[None, None]:
+    """
+    Return (name, confidence) of the best matching face, or (None, None).
+    confidence = 1 - distance, range 0.0 - 1.0, higher is better.
+    """
+    import face_recognition
+
+    if not known_encodings:
+        return None, None
+
+    rgb_img = np.ascontiguousarray(img[:, :, ::-1])
+    unknown_encodings = face_recognition.face_encodings(rgb_img)
+
     if not unknown_encodings:
-        return None
-    for encoding in unknown_encodings:
-        results = face_recognition.compare_faces(known_encodings, encoding)
-        if True in results:
-            idx = results.index(True)
-            return known_names[idx]
-    return None
+        return None, None
 
-def markAttendance(name):
-    filename = "attendance.csv"
+    np_known = [np.array(e) for e in known_encodings]
+
+    for encoding in unknown_encodings:
+        distances = face_recognition.face_distance(np_known, encoding)
+        best_idx = int(np.argmin(distances))
+        best_dist = float(distances[best_idx])
+
+        if best_dist < 0.5:
+            return known_names[best_idx], round(1 - best_dist, 4)
+
+    return None, None
+
+
+def markAttendance(name: str) -> str:
+    """
+    Record attendance in Supabase and return a user-facing message.
+    Handles In/Out toggling — grace period removed, state machine handles it.
+    """
     now = datetime.now()
     date_str = now.strftime("%Y-%m-%d")
     time_str = now.strftime("%H:%M:%S")
 
-    logs = []
-    if os.path.exists(filename):
-        with open(filename, "r") as f:
-            reader = csv.reader(f)
-            logs = list(reader)
+    today_logs = get_today_logs(name, date_str)
 
-    # Filter today's logs for this person
-    today_logs = [row for row in logs if row and row[0] == name and row[1] == date_str]
-
-    if today_logs:
-        last_status = today_logs[-1][2]
-        last_time = datetime.strptime(today_logs[-1][3], "%H:%M:%S")
-
-        # Grace period (5 min)
-        if now - last_time < timedelta(minutes=5):
-            return f"ℹ️ {name}, you already clocked {last_status} at {today_logs[-1][3]}."
-
-    # Decide IN or OUT
-    if not today_logs or today_logs[-1][2] == "Out":
+    if not today_logs or today_logs[-1]["status"] == "Out":
         status = "In"
-        message = f"✅ Welcome {name}, you are checked IN at {time_str}. Have a productive day!"
+        message = f"✅ Welcome {name}! Checked IN at {time_str}. Have a productive day!"
     else:
         status = "Out"
-        message = f"👋 Goodbye {name}, you checked OUT at {time_str}."
+        message = f"👋 Goodbye {name}! Checked OUT at {time_str}. See you next time!"
 
-    # Write new log
-    with open(filename, "a", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow([name, date_str, status, time_str])
-
+    save_attendance(name, date_str, status, time_str)
     return message
-
