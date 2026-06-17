@@ -76,7 +76,6 @@ class PresenceStateMachine {
     if (!landmarks) return;
 
     const ear = computeEAR(landmarks);
-    console.log("[Liveness] EAR:", ear.toFixed(3));
 
     if (ear < PresenceStateMachine.EAR_THRESHOLD) {
       this._eyeClosedFrames++;

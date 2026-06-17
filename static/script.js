@@ -13,8 +13,15 @@ let latestLandmarks = null;
 let faceMatcher = null;
 let knownFaceCount = 0;
 let lastMatchAt = 0;
+let lastSeenName = null;
+let lastSeenConfidence = null;
 
-const MATCH_INTERVAL = 300;
+const DETECTION_INTERVAL = 250;
+const MATCH_INTERVAL = 1500;
+const DETECTOR_OPTIONS = new faceapi.TinyFaceDetectorOptions({
+  inputSize: 224,
+  scoreThreshold: 0.5,
+});
 
 function setStatus(text, cls = "text-muted small") {
   if (!statusEl) return;
@@ -180,9 +187,8 @@ async function detectionLoop(timestamp) {
 
   try {
     detections = await faceapi
-      .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
-      .withFaceLandmarks()
-      .withFaceDescriptors();
+      .detectAllFaces(video, DETECTOR_OPTIONS)
+      .withFaceLandmarks();
 
     latestLandmarks = detections.length ? detections[0].landmarks : null;
   } catch (err) {
@@ -193,19 +199,41 @@ async function detectionLoop(timestamp) {
   pool.updateLiveness(latestLandmarks);
   updateGuide(detections);
 
+  if (!detections.length) {
+    lastSeenName = null;
+    lastSeenConfidence = null;
+  }
+
   if (timestamp - lastMatchAt >= MATCH_INTERVAL) {
     lastMatchAt = timestamp;
 
-    if (detections.length > 0) {
-      const { name, confidence } = matchDetection(detections[0]);
-      const clocked = pool.update(name, confidence, latestLandmarks);
-      if (clocked) await clockEvent(clocked);
+    if (detections.length > 0 && faceMatcher) {
+      try {
+        const descriptorDetection = await faceapi
+          .detectSingleFace(video, DETECTOR_OPTIONS)
+          .withFaceLandmarks()
+          .withFaceDescriptor();
+
+        const { name, confidence } = matchDetection(descriptorDetection);
+        lastSeenName = name;
+        lastSeenConfidence = confidence;
+      } catch (err) {
+        console.warn("[Recognition] face descriptor error:", err);
+        lastSeenName = null;
+        lastSeenConfidence = null;
+      }
     } else {
-      pool.update(null, null, null);
+      lastSeenName = null;
+      lastSeenConfidence = null;
     }
   }
 
-  requestAnimationFrame(detectionLoop);
+  const clocked = pool.update(lastSeenName, lastSeenConfidence, latestLandmarks);
+  if (clocked) await clockEvent(clocked);
+
+  window.setTimeout(() => {
+    requestAnimationFrame(detectionLoop);
+  }, DETECTION_INTERVAL);
 }
 
 async function start() {
@@ -228,7 +256,13 @@ async function start() {
       throw new Error("getUserMedia not supported");
     }
 
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        width: { ideal: 640 },
+        height: { ideal: 480 },
+        frameRate: { ideal: 15, max: 20 },
+      },
+    });
     video.srcObject = stream;
     await video.play();
 
