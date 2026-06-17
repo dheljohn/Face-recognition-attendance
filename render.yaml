@@ -2,11 +2,13 @@ services:
   - type: web
     name: faceattend
     runtime: python
-    buildCommand: apt-get install -y cmake libopenblas-dev liblapack-dev && pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
     envVars:
       - key: FLASK_DEBUG
         value: "false"
+      - key: PYTHON_VERSION
+        value: "3.11.9"
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
