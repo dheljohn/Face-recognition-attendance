@@ -5,7 +5,6 @@ All face storage and attendance logging goes through here.
 The rest of the app never touches the filesystem for face data.
 """
 
-import json
 import os
 
 from supabase import create_client, Client
@@ -51,7 +50,7 @@ def get_all_faces() -> list[dict]:
 
 def get_face_encodings() -> tuple[list, list]:
     """
-    Return (encodings, names) ready for face_recognition.
+    Return (encodings, names) stored for browser-side face-api.js matching.
     Encodings are plain Python lists (128 floats each).
     """
     rows = get_all_faces()
