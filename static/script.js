@@ -131,7 +131,9 @@ async function loadKnownFaces() {
 
   const faces = await resp.json();
   const labeledDescriptors = faces
-    .filter((face) => Array.isArray(face.encoding) && face.encoding.length === 128)
+    .filter(
+      (face) => Array.isArray(face.encoding) && face.encoding.length === 128,
+    )
     .map(
       (face) =>
         new faceapi.LabeledFaceDescriptors(face.name, [
@@ -141,7 +143,10 @@ async function loadKnownFaces() {
 
   knownFaceCount = labeledDescriptors.length;
   faceMatcher = knownFaceCount
-    ? new faceapi.FaceMatcher(labeledDescriptors, PresenceStateMachine.CONFIDENCE_THRESHOLD)
+    ? new faceapi.FaceMatcher(
+        labeledDescriptors,
+        PresenceStateMachine.CONFIDENCE_THRESHOLD,
+      )
     : null;
 }
 
@@ -228,7 +233,11 @@ async function detectionLoop(timestamp) {
     }
   }
 
-  const clocked = pool.update(lastSeenName, lastSeenConfidence, latestLandmarks);
+  const clocked = pool.update(
+    lastSeenName,
+    lastSeenConfidence,
+    latestLandmarks,
+  );
   if (clocked) await clockEvent(clocked);
 
   window.setTimeout(() => {
@@ -241,6 +250,18 @@ async function start() {
     if (typeof faceapi === "undefined") {
       setStatus("face-api.js not loaded", "text-danger small");
       return;
+    }
+
+    // --- NEW: force CPU backend ---
+    if (typeof tf !== "undefined") {
+      await tf.setBackend("cpu");
+      console.log("Backend set to:", tf.getBackend()); // should log 'cpu'
+    } else if (faceapi.tf) {
+      // fallback: some face-api builds expose tf as faceapi.tf
+      await faceapi.tf.setBackend("cpu");
+      console.log("Backend via faceapi.tf:", faceapi.tf.getBackend());
+    } else {
+      console.warn("Could not find tf – backend may remain WebGL");
     }
 
     setStatus("Loading models...");
